@@ -1,9 +1,9 @@
 ---
 galaxy_info:
   author: James Pic
-  description: Simple pip3 role
+  description: Docker based nginx with letsencrypt support
   company: YourLabs
-  issue_tracker_url: https://yourlabs.io/oss/yourlabs.pip/issues
+  issue_tracker_url: https://yourlabs.io/oss/yourlabs.nginx/issues
   license: MIT
   min_ansible_version: 1.2
   platforms:
