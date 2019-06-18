@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: James Pic
+  role_name: nginx
   description: Docker based nginx with letsencrypt support
   company: YourLabs
   issue_tracker_url: https://yourlabs.io/oss/yourlabs.nginx/issues
