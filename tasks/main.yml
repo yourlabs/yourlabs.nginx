@@ -1,9 +1,14 @@
 ---
 
-- name: Ensure docker was setup once on this host
-  include_role: name=yourlabs.roleonce
-  vars:
-    rolenames: [yourlabs.io/oss/yourlabs.docker]
+- include_role: name=yourlabs.remember
+- include_role: name=yourlabs.remember tasks_from=require_once
+  vars: {rolename: yourlabs.docker}
+
+- name: Set nginx_env
+  when: acme != 'httponly'
+  set_fact:
+    nginx_env:
+      ACME_CA_URI: '{{ acme }}'
 
 - name: Set Log driver
   set_fact:
@@ -18,17 +23,17 @@
   docker_container:
     pull: true
     name: nginx-proxy
-    image: '{{ nginx_image }}'
+    image: '{{ image }}'
     hostname: nginx-proxy
     published_ports: ['80:80', '443:443']
     restart_policy: always
     log_driver: '{{ log_driver }}'
     volumes:
-    - '{{ nginx_home }}conf.d:/etc/nginx/conf.d'
-    - '{{ nginx_home }}vhosts.d:/etc/nginx/vhost.d'
-    - '{{ nginx_home }}certs:/etc/nginx/certs:ro'
-    - '{{ nginx_home }}html:/usr/share/nginx/html:rw'
-    - '{{ nginx_home }}htpasswd:/etc/nginx/htpasswd:ro'
+    - '{{ home }}conf.d:/etc/nginx/conf.d'
+    - '{{ home }}vhosts.d:/etc/nginx/vhost.d'
+    - '{{ home }}certs:/etc/nginx/certs:ro'
+    - '{{ home }}html:/usr/share/nginx/html:rw'
+    - '{{ home }}htpasswd:/etc/nginx/htpasswd:ro'
     - /var/run/docker.sock:/tmp/docker.sock:ro
     labels: com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=nginx-letsencrypt
 
@@ -41,8 +46,7 @@
     volumes_from: [nginx-proxy]
     restart_policy: always
     log_driver: '{{ log_driver }}'
-    env:
-      ACME_CA_URI: '{{ letsencrypt_uri }}'
+    env: '{{ nginx_env|default({}) }}'
     volumes:
-    - '{{ nginx_home }}certs:/etc/nginx/certs:rw'
+    - '{{ home }}certs:/etc/nginx/certs:rw'
     - /var/run/docker.sock:/var/run/docker.sock:ro
