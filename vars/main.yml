@@ -2,14 +2,14 @@
 rolename: yourlabs.nginx
 rolevars:
 - name: home
-  question: Where should be the home of nginx ?
-  default: /etc/nginx
-- name: image
-  question: What image to use ?
-  default: jwilder/nginx-proxy:alpine
+  question: Where should be the absolute path to home of nginx ?
+  default: /etc/nginx/
+  regexp: '^/.*/$'
 - name: acme
   question: Enable https with letsencrypt ?
   choices:
     staging: https://acme-staging.api.letsencrypt.org/directory
     production: https://acme-v01.api.letsencrypt.org/directory
     httponly: ''
+
+    #acme_email_when: '{{ acme }}'

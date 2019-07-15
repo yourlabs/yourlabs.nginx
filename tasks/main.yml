@@ -5,7 +5,7 @@
   vars: {rolename: yourlabs.docker}
 
 - name: Set nginx_env
-  when: acme != 'httponly'
+  when: acme|bool
   set_fact:
     nginx_env:
       ACME_CA_URI: '{{ acme }}'
@@ -19,34 +19,19 @@
     name: passlib
     state: present
 
-- name: Create nginx-proxy container with jwilder/nginx-proxy
-  docker_container:
-    pull: true
-    name: nginx-proxy
-    image: '{{ image }}'
-    hostname: nginx-proxy
-    published_ports: ['80:80', '443:443']
-    restart_policy: always
-    log_driver: '{{ log_driver }}'
-    volumes:
-    - '{{ home }}conf.d:/etc/nginx/conf.d'
-    - '{{ home }}vhosts.d:/etc/nginx/vhost.d'
-    - '{{ home }}certs:/etc/nginx/certs:ro'
-    - '{{ home }}html:/usr/share/nginx/html:rw'
-    - '{{ home }}htpasswd:/etc/nginx/htpasswd:ro'
-    - /var/run/docker.sock:/tmp/docker.sock:ro
-    labels: com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=nginx-letsencrypt
+- name: Upload {{ home }}/{{ item }}
+  copy:
+    src: '{{ role_path }}/{{ item }}'
+    dest: '{{ home }}/{{ item }}'
+  with_items:
+  - docker-compose.yml
+  - nginx.tmpl
 
-- name: Create nginx-letsencrypt container with jrcs/letsencrypt-nginx-proxy-companion
-  when: letsencrypt_email|default()
-  docker_container:
-    pull: true
-    name: nginx-letsencrypt
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    volumes_from: [nginx-proxy]
-    restart_policy: always
-    log_driver: '{{ log_driver }}'
-    env: '{{ nginx_env|default({}) }}'
-    volumes:
-    - '{{ home }}certs:/etc/nginx/certs:rw'
-    - /var/run/docker.sock:/var/run/docker.sock:ro
+- name: Start {{ home }}/docker-compose.yml
+  docker_compose:
+    project_src: '{{ home }}'
+    restarted: yes
+    pull: yes
+    recreate: always
+
+- include_role: name=yourlabs.remember tasks_from=success
