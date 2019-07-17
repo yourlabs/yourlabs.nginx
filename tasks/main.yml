@@ -19,6 +19,12 @@
     name: passlib
     state: present
 
+- name: Make {{ home }}
+  file:
+    path: '{{ home }}'
+    state: directory
+    mode: 755
+
 - name: Upload {{ home }}/{{ item }}
   copy:
     src: '{{ role_path }}/{{ item }}'
